@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كشف الحساب المحدث</title>
+    <style>
+        body {
+            font-family: 'Amiri', serif;
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .cover {
+            background-image: url('cover-image.jpg'); /* Replace with your cover image URL */
+            background-size: cover;
+            background-position: center;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .cover h1 {
+            font-size: 36px;
+            margin: 0;
+        }
+
+        .container {
+            margin: 20px auto;
+            max-width: 1000px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            text-align: center;
+            padding: 8px;
+            color: black;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .project-header {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #555;
+            font-size: 12px;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 60px;
+            right: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar button {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .sidebar select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .negative {
+            color: red;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media print {
+            .sidebar, .controls, footer, #denomination-container {
+                display: none;
+            }
+            .container {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+            table {
+                width: 100%;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <select id="languageSelect" onchange="changeLanguage()">
+            <option value="ar">عربي</option>
+            <option value="en">English</option>
+        </select>
+        كشف الحساب المحدث
+    </header>
+
+    <div class="cover">
+        <h1>إدارة المشاريع المالية</h1>
+    </div>
+
+    <!-- Login Page -->
+    <div class="container" id="loginContainer">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div class="sidebar hidden" id="adminSidebar">
+        <h2>إدارة المستخدمين</h2>
+        <button onclick="addUser()">إضافة مستخدم جديد</button>
+        <select id="userList" onchange="loadUser()">
+            <!-- المستخدمين سيتم إضافتهم هنا -->
+        </select>
+        <button onclick="deleteUser()">حذف المستخدم</button>
+        <button onclick="editUser()">تحرير اسم المستخدم</button>
+        <button onclick="changePassword()">تغيير كلمة المرور</button>
+        <button onclick="logout()">تسجيل الخروج</button>
+    </div>
+
+    <div class="container hidden" id="accountContainer">
+        <div class="project-header">
+            كشف حساب المستخدم: <span id="currentUser">لا يوجد مستخدم محدد</span>
+        </div>
+
+        <div class="controls">
+            <button onclick="addRow()">إضافة صف</button>
+            <button onclick="saveData()">حفظ</button>
+            <button onclick="exportToExcel()">تصدير إلى Excel</button>
+            <button onclick="printTable()">طباعة</button>
+            <button onclick="logout()">تسجيل الخروج</button>
+            <button onclick="sortTableByDate()">فرز حسب التاريخ</button>
+        </div>
+
+        <table id="accountTable">
+            <thead>
+                <tr>
+                    <th>مسلسل</th>
+                    <th onclick="sortTableByDate()">التاريخ</th>
+                    <th>رقم المستند</th>
+                    <th>البيان</th>
+                    <th>الوارد</th>
+                    <th>المنصرف</th>
+                    <th>الرصيد</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- الصفوف سيتم إضافتها هنا -->
+            </tbody>
+        </table>
+
+        <div id="summary-container">
+            <h3>الإجمالي</h3>
+            <p>الرصيد النهائي بالكلمات (عربي): <span id="balanceInWordsArabic"></span></p>
+            <p>تاريخ الإجمالي: <span id="summaryDate"></span></p>
+        </div>
+
+        <div id="denomination-container">
+            <h3>تفقيط الفئات النقدية</h3>
+            <label for="targetAmount">المبلغ المطلوب:</label>
+            <input type="number" id="targetAmount" placeholder="أدخل المبلغ" />
+            <button onclick="showDenominationTable()">عرض الجدول</button>
+            <button onclick="clearDenominationTable()">محو التفقيط</button>
+            <button onclick="closeDenomination()">إقفال التفقيط</button>
+
+            <div id="denominationTableContainer" class="hidden">
+                <table id="denominationTable">
+                    <thead>
+                        <tr>
+                            <th>الفئة</th>
+                            <th>العدد</th>
+                            <th>المجموع</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-value="1000">
+                            <td>1000</td>
+                            <td><input type="number" min="0" value="0" onchange="calculateDenomiation(this)" /></td>
+                            <td>0</td>
+                        </tr>
+                        <tr data-value="500">
+                            <td>500</td>
+                            <td><input type="number" min="0" value="0" onchange="calculateDenomiation(this)" /></td>
+                            <td>0</td>
+                        </tr>
+                        <tr data-value="200">
+                            <td>200</td>
+                            <td><input type="number" min="0" value="0" onchange="calculateDenomiation(this)" /></td>
+                            <td>0</td>
+                        </tr>
+                        <tr data-value="100">
+                            <td>100</td>
+                            <td><input type="number" min="0" value="0" onchange="calculateDenomiation(this)" /></td>
+                            <td>0</td>
+                        </tr>
+                        <tr data-value="50">
+                            <td>50</td>
+                            <td><input type="number" min="0" value="0" onchange="calculateDenomiation(this)" /></td>
+                            <td>0</td>
+                        </tr>
+                        <tr data-value="20">
+                            <td>20</td>
+                            <td><input type="number" min="0" value="0" onchange="calculateDenomiation(this)" /></td>
+                            <td>0</td>
+                        </tr>
+                        <tr data-value="10">
+                            <td>10</td>
+                            <td><input type="number" min="0" value="0" onchange="calculateDenomiation(this)" /></td>
+                            <td>0</td>
+                        </tr>
+                        <tr data-value="5">
+                            <td>5</td>
+                            <td><input type="number" min="0" value="0" onchange="calulateDenomiation(this)" /></td>
+                            <td>0</td>
+                        </tr>
+                        <tr data-value="1">
+                            <td>1</td>
+                            <td><input type="number" min="0" value="0" onchange="calulateDenomiation(this)" /></td>
+                            <td>0</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div id="denominationSummary">
+                    <strong>Required Amount:</strong> <span id="targetAmountDisplay">0</span><br>
+                    <strong>Total Amount:</strong> <span id="totalAmount">0</span><br>
+                    <strong>Remaining Amount:</strong> <span id="remainingAmount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            حقوق النشر &copy; أحمد مبروك
+        </footer>
+    </div>
+
+    <div class="license-counter">
+        <p>الترخيص الحالي: <span id="licenseDaysRemaining"></span> أيام متبقية</p>
+        <p>عند الانتهاء من الترخيص، يرجى التجديد عن طريق الاتصال بمنشئ المحتوى على الواتساب 00971555156740 أو البريد الإلكتروني mabroouk@hotmail.com</p>
+    </div>
+
+    <script>
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let currentUser = null;
+        let currentLanguage = 'ar';
+        let sortOrder = 'asc'; // Default sort order
+
+        // Add a predefined admin user
+        if (users.length === 0) {
+            users.push({ username: 'admin', password: 'admin123', duration: 12, expirationDate: new Date().setMonth(new Date().getMonth() + 12) }); // 12 months duration
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Check credentials
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                alert('Login successful!');
+                currentUser = user;
+                document.getElementById('loginContainer').classList.add('hidden');
+                if (user.username === 'admin') {
+                    document.getElementById('adminSidebar').classList.remove('hidden');
+                }
+                document.getElementById('accountContainer').classList.remove('hidden');
+                document.getElementById('currentUser').textContent = currentUser.username;
+                loadSavedData();
+                updateLicenseCounter();
+            } else {
+                alert('Invalid username or password');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('adminSidebar').classList.add('hidden');
+            document.getElementById('accountContainer').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function addRow() {
+            const tableBody = document.querySelector('#accountTable tbody');
+            const rowCount = tableBody.rows.length + 1;
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>\${rowCount}</td>
+                <td><input type="date" /></td>
+                <td contenteditable="true">رقم المستند</td>
+                <td contenteditable="true">البيان</td>
+                <td contenteditable="true" oninput="updateBalance()">0</td>
+                <td contenteditable="true" oninput="updateBalance()">0</td>
+                <td>0</td>
+                <td><button onclick="deleteRow(this)">حذف</button></td>
+            `;
+            tableBody.appendChild(newRow);
+            updateBalance();
+            updateSerialNumbers();
+        }
+
+        function deleteRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+            updateSerialNumbers();
+            updateBalance();
+        }
+
+        function updateSerialNumbers() {
+            const rows = document.querySelectorAll('#accountTable tbody tr');
+            rows.forEach((row, index) => {
+                row.cells[0].textContent = index + 1;
+            });
+        }
+
+        function updateBalance() {
+            const rows = document.querySelectorAll('#accountTable tbody tr');
+            let balance = 0;
+            rows.forEach(row => {
+                const incoming = parseFloat(row.cells[4].textContent) || 0;
+                const outgoing = parseFloat(row.cells[5].textContent) || 0;
+                balance += incoming - outgoing;
+                row.cells[6].textContent = balance.toFixed(2);
+                row.cells[6].style.direction = 'ltr'; // Ensure right-to-left alignment for numbers
+                if (balance < 0) {
+                    row.cells[6].classList.add('negative');
+                } else {
+                    row.cells[6].classList.remove('negative');
+                }
+            });
+            convertBalanceToWords(balance);
+        }
+
+        function addUser() {
+            const username = prompt("أدخل اسم المستخدم الجديد:");
+            const password = prompt("أدخل كلمة المرور للمستخدم الجديد:");
+            const duration = prompt("أدخل مدة الصلاحية بالشهور:");
+            if (username && password && duration) {
+                const newUser = { username, password, duration: parseInt(duration), expirationDate: new Date().setMonth(new Date().getMonth() + parseInt(duration)) };
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                updateUserList();
+            }
+        }
+
+        function deleteUser() {
+            const userList = document.getElementById('userList');
+            const selectedIndex = userList.selectedIndex;
+            if (selectedIndex !== -1) {
+                users.splice(selectedIndex, 1);
+                localStorage.setItem('users', JSON.stringify(users));
+                updateUserList();
+            }
+        }
+
+        function editUser() {
+            const userList = document.getElementById('userList');
+            const selectedIndex = userList.selectedIndex;
+            if (selectedIndex !== -1) {
+                const newUsername = prompt("أدخل الاسم الجديد للمستخدم:");
+                if (newUsername) {
+                    users[selectedIndex].username = newUsername;
+                    localStorage.setItem('users', JSON.stringify(users));
+                    updateUserList();
+                }
+            }
+        }
+
+        function changePassword() {
+            const newPassword = prompt("أدخل كلمة المرور الجديدة:");
+            if (newPassword) {
+                const adminUser = users.find(u => u.username === 'admin');
+                if (adminUser) {
+                    adminUser.password = newPassword;
+                    localStorage.setItem('users', JSON.stringify(users));
+                    alert('تم تغيير كلمة المرور بنجاح');
+                }
+            }
+        }
+
+        function loadUser() {
+            const userList = document.getElementById('userList');
+            const selectedIndex = userList.selectedIndex;
+            if (selectedIndex !== -1) {
+                currentUser = users[selectedIndex];
+                document.getElementById('currentUser').textContent = currentUser.username;
+                loadSavedData();
+                updateLicenseCounter();
+            }
+        }
+
+        function updateUserList() {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = user.username;
+                userList.appendChild(option);
+            });
+        }
+
+        function saveData() {
+            const tableBody = document.querySelector('#accountTable tbody');
+            const rows = [];
+            for (let i = 0; i < tableBody.rows.length; i++) {
+                const row = tableBody.rows[i];
+                const rowData = {
+                    serial: row.cells[0].textContent,
+                    date: row.cells[1].firstChild.value,
+                    documentNumber: row.cells[2].textContent,
+                    description: row.cells[3].textContent,
+                    incoming: row.cells[4].textContent,
+                    outgoing: row.cells[5].textContent,
+                    balance: row.cells[6].textContent
+                };
+                rows.push(rowData);
+            }
+            const userData = {
+                username: currentUser.username,
+                rows: rows
+            };
+            localStorage.setItem('userData', JSON.stringify(userData));
+            alert('تم الحفظ بنجاح');
+        }
+
+        function loadSavedData() {
+            const savedData = JSON.parse(localStorage.getItem('userData'));
+            if (savedData && savedData.username === currentUser.username) {
+                const tableBody = document.querySelector('#accountTable tbody');
+                tableBody.innerHTML = '';
+                savedData.rows.forEach(rowData => {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>\${rowData.serial}</td>
+                        <td><input type="date" value="${rowData.date}" /></td>
+                        <td contenteditable="true">${rowData.documentNumber}</td>
+                        <td contenteditable="true">${rowData.description}</td>
+                        <td contenteditable="true" oninput="updateBalance()">${rowData.incoming}</td>
+                        <td contenteditable="true" oninput="updateBalance()">${rowData.outgoing}</td>
+                        <td>${rowData.balance}</td>
+                        <td><button onclick="deleteRow(this)">حذف</button></td>
+                    `;
+                    tableBody.appendChild(newRow);
+                });
+                updateBalance();
+            }
+        }
+
+        function exportToExcel() {
+            const table = document.getElementById('accountTable');
+            const wb = XLSX.utils.table_to_book(table, { sheet: 'Account Statement' });
+            XLSX.writeFile(wb, 'account_statement.xlsx');
+        }
+
+        function printTable() {
+            window.print();
+        }
+
+        function showDenominationTable() {
+            const targetAmount = parseFloat(document.getElementById('targetAmount').value);
+            if (isNaN(targetAmount)) {
+                alert("يرجى إدخال مبلغ صحيح.");
+                return;
+            }
+            document.getElementById('targetAmountDisplay').textContent = targetAmount.toFixed(2);
+            document.getElementById('denominationTableContainer').classList.remove('hidden');
+        }
+
+        function clearDenominationTable() {
+            document.getElementById('targetAmount').value = '';
+            document.getElementById('targetAmountDisplay').textContent = '0';
+            document.getElementById('totalAmount').textContent = '0';
+            document.getElementById('remainingAmount').textContent = '0';
+            const rows = document.querySelectorAll('#denominationTable tbody tr');
+            rows.forEach(row => {
+                row.cells[1].firstChild.value = '0';
+                row.cells[2].textContent = '0';
+            });
+        }
+
+        function calculateDenomination(input) {
+            const row = input.closest('tr');
+            const value = parseFloat(row.getAttribute('data-value'));
+            const count = parseInt(input.value);
+            const total = value * count;
+            row.cells[2].textContent = total.toFixed(2);
+            updateDenominationSummary();
+        }
+
+        function updateDenominationSummary() {
+            const targetAmount = parseFloat(document.getElementById('targetAmount').value);
+            const rows = document.querySelectorAll('#denominationTable tbody tr');
+            let totalAmount = 0;
+            rows.forEach(row => {
+                totalAmount += parseFloat(row.cells[2].textContent) || 0;
+            });
+            const remainingAmount = targetAmount - totalAmount;
+            document.getElementById('totalAmount').textContent = totalAmount.toFixed(2);
+            document.getElementById('remainingAmount').textContent = remainingAmount.toFixed(2);
+        }
+
+        function closeDenomination() {
+            document.getElementById('denominationTableContainer').classList.add('hidden');
+        }
+
+        function changeLanguage() {
+            const languageSelect = document.getElementById('languageSelect');
+            currentLanguage = languageSelect.value;
+            if (currentLanguage === 'en') {
+                document.documentElement.lang = 'en';
+                document.documentElement.dir = 'ltr';
+                document.querySelector('header').textContent = 'Updated Account Statement';
+                document.querySelector('.sidebar h2').textContent = 'User Management';
+                document.querySelectorAll('.sidebar button')[0].textContent = 'Add New User';
+                document.querySelectorAll('.sidebar button')[1].textContent = 'Delete User';
+                document.querySelectorAll('.sidebar button')[2].textContent = 'Edit User Name';
+                document.querySelectorAll('.sidebar button')[3].textContent = 'Change Password';
+                document.querySelectorAll('.sidebar button')[4].textContent = 'Logout';
+                document.querySelector('.project-header').textContent = 'User Statement: ';
+                document.querySelectorAll('.controls button')[0].textContent = 'Add Row';
+                document.querySelectorAll('.controls button')[1].textContent = 'Save';
+                document.querySelectorAll('.controls button')[2].textContent = 'Export to Excel';
+                document.querySelectorAll('.controls button')[3].textContent = 'Print';
+                document.querySelectorAll('.controls button')[4].textContent = 'Logout';
+                document.querySelectorAll('.controls button')[5].textContent = 'Sort by Date';
+                document.querySelectorAll('th')[0].textContent = 'Serial';
+                document.querySelectorAll('th')[1].textContent = 'Date';
+                document.querySelectorAll('th')[2].textContent = 'Document Number';
+                document.querySelectorAll('th')[3].textContent = 'Description';
+                document.querySelectorAll('th')[4].textContent = 'Incoming';
+                document.querySelectorAll('th')[5].textContent = 'Outgoing';
+                document.querySelectorAll('th')[6].textContent = 'Balance';
+                document.querySelectorAll('th')[7].textContent = 'Actions';
+                document.querySelector('#denomination-container h3').textContent = 'Currency Denominations';
+                document.querySelector('label[for="targetAmount"]').textContent = 'Required Amount:';
+                document.querySelector('#targetAmount').placeholder = 'Enter Amount';
+                document.querySelector('#denomination-container button:nth-child(3)').textContent = 'Show Table';
+                document.querySelector('#denomination-container button:nth-child(4)').textContent = 'Clear Denomination';
+                document.querySelector('#denomiation-container button:nth-child(5)').textContent = 'Close Denomiation';
+                document.querySelectorAll('#denominationTable th')[0].textContent = 'Denomination';
+                document.querySelectorAll('#denomiationTable th')[1].textContent = 'Count';
+                document.querySelectorAll('#denomiationTable th')[2].textContent = 'Total';
+                document.querySelector('#denomiationSummary strong:nth-child(1)').textContent = 'Required Amount:';
+                document.querySelector('#denomiationSummary strong:nth-child(3)').textContent = 'Total Amount:';
+                document.querySelector('#denomiationSummary strong:nth-child(5)').textContent = 'Remaining Amount:';
+                document.querySelector('footer').textContent = '© Ahmed Mabrouk';
+            } else {
+                document.documentElement.lang = 'ar';
+                document.documentElement.dir = 'rtl';
+                document.querySelector('header').textContent = 'كشف الحساب المحدث';
+                document.querySelector('.sidebar h2').textContent = 'إدارة المستخدمين';
+                document.querySelectorAll('.sidebar button')[0].textContent = 'إضافة مستخدم جديد';
+                document.querySelectorAll('.sidebar button')[1].textContent = 'حذف المستخدم';
+                document.querySelectorAll('.sidebar button')[2].textContent = 'تحرير اسم المستخدم';
+                document.querySelectorAll('.sidebar button')[3].textContent = 'تغيير كلمة المرور';
+                document.querySelectorAll('.sidebar button')[4].textContent = 'تسجيل الخروج';
+                document.querySelector('.project-header').textContent = 'كشف حساب المستخدم: ';
+                document.querySelectorAll('.controls button')[0].textContent = 'إضافة صف';
+                document.querySelectorAll('.controls button')[1].textContent = 'حفظ';
+                document.querySelectorAll('.controls button')[2].textContent = 'تصدير إلى Excel';
+                document.querySelectorAll('.controls button')[3].textContent = 'طباعة';
+                document.querySelectorAll('.controls button')[4].textContent = 'تسجيل الخروج';
+                document.querySelectorAll('.controls button')[5].textContent = 'فرز حسب التاريخ';
+                document.querySelectorAll('th')[0].textContent = 'مسلسل';
+                document.querySelectorAll('th')[1].textContent = 'التاريخ';
+                document.querySelectorAll('th')[2].textContent = 'رقم المستند';
+                document.querySelectorAll('th')[3].textContent = 'البيان';
+                document.querySelectorAll('th')[4].textContent = 'الوارد';
+                document.querySelectorAll('th')[5].textContent = 'المنصرف';
+                document.querySelectorAll('th')[6].textContent = 'الرصيد';
+                document.querySelectorAll('th')[7].textContent = 'إجراءات';
+                document.querySelector('#denomination-container h3').textContent = 'تفقيط الفئات النقدية';
+                document.querySelector('label[for="targetAmount"]').textContent = 'المبلغ المطلوب:';
+                document.querySelector('#targetAmount').placeholder = 'أدخل المبلغ';
+                document.querySelector('#denomiation-container button:nth-child(3)').textContent = 'عرض الجدول';
+                document.querySelector('#denomiation-container button:nth-child(4)').textContent = 'محو التفقيط';
+                document.querySelector('#denomiation-container button:nth-child(5)').textContent = 'إقفال التفقيط';
+                document.querySelectorAll('#denomiationTable th')[0].textContent = 'الفئة';
+                document.querySelectorAll('#denomiationTable th')[1].textContent = 'العدد';
+                document.querySelectorAll('#denomiationTable th')[2].textContent = 'المجموع';
+                document.querySelector('#denomiationSummary strong:nth-child(1)').textContent = 'المبلغ المطلوب:';
+                document.querySelector('#denomiationSummary strong:nth-child(3)').textContent = 'المجموع الكلي:';
+                document.querySelector('#denomiationSummary strong:nth-child(5)').textContent = 'المبلغ الباقي:';
+                document.querySelector('footer').textContent = 'حقوق النشر ح © أحمد مبروك';
+            }
+        }
+
+        function convertBalanceToWords(balance) {
+            const arabicWords = convertToWordsArabic(balance);
+            document.getElementById('balanceInWordsArabic').textContent = arabicWords;
+
+            // Update summary date
+            const dateInput = document.querySelector('#accountTable tbody tr:last-child td:nth-child(2) input[type="date"]');
+            if (dateInput) {
+                document.getElementById('summaryDate').textContent = dateInput.value;
+            }
+        }
+
+        function convertToWordsArabic(num) {
+            const ones = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة", "عشرة", "احدى عشر", "اثنى عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "ثمانية عشر", "تسعة عشر", "عشرة عشر"];
+            const tens = ["", "", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون", "عشرون"];
+            const hundreds = ["", "مائة", "مائتان", "ثلاثمائة", "أربعمائة", "خمسمائة", "ستمائة", "ثمانمائة", "تسعمائة"];
+
+            let arabicWords = '';
+            if (num >= 100) {
+                const hundredsWord = hundreds[Math.floor(num / 100)];
+                const remainder = num % 100;
+                arabicWords += hundredsWord + ' ';
+                if (remainder > 0) {
+                    if (remainder < 10) {
+                        arabicWords += 'و';
+                    }
+                    arabicWords += convertToWordsArabic(remainder);
+                }
+            } else {
+                arabicWords = ones[num];
+            }
+            return arabicWords.trim();
+        }
+
+        function sortTableByDate() {
+            const tableBody = document.querySelector('#accountTable tbody');
+            const rows = Array.from(tableBody.rows);
+            const isAscending = sortOrder === 'asc';
+            rows.sort((a, b) => {
+                const dateA = new Date(a.cells[1].firstChild.value);
+                const dateB = new Date(b.cells[1].firstChild.value);
+                return isAscending ? dateA - dateB : dateB - dateA;
+            });
+            tableBody.innerHTML = '';
+            rows.forEach(row => tableBody.appendChild(row));
+            updateSerialNumbers();
+            sortOrder = isAscending ? 'desc' : 'asc'; // Toggle sort order
+        }
+
+        function updateLicenseCounter() {
+            const currentDate = new Date();
+            const user = users.find(u => u.username === currentUser.username);
+            if (user) {
+                const expirationDate = new Date(user.expirationDate);
+                const timeDiff = expirationDate - currentDate;
+                const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                document.getElementById('licenseDaysRemaining').textContent = daysRemaining;
+            }
+        }
+
+        // Initialize user list
+        updateUserList();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+</body>
+</html>
